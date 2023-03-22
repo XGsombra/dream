@@ -212,7 +212,8 @@ class Trainer(object):
             for p in self.guidance.parameters():
                 p.requires_grad = False
 
-            self.prepare_text_embeddings()
+            # self.prepare_text_embeddings()
+            self.prepare_image_embeddings()
         
         else:
             self.text_z = None
@@ -323,6 +324,40 @@ class Trainer(object):
                     elif d == 'bottom': negative_text += "face"
                 
                 text_z = self.guidance.get_text_embeds([text], [negative_text])
+                self.text_z.append(text_z)
+
+    def prepare_image_embeddings(self):
+
+        if self.opt.text is None:
+            self.log(f"[WARN] text prompt is not provided.")
+            self.text_z = None
+            return
+
+        if not self.opt.dir_text:
+            self.text_z = self.guidance.get_image_embeds([self.opt.text], [self.opt.negative])
+        else:
+            self.text_z = []
+            for d in ['front', 'side', 'back', 'side', 'overhead', 'bottom']:
+                # construct dir-encoded text
+                text = f"{self.opt.text}, {d} view"
+
+                negative_text = f"{self.opt.negative}"
+
+                # explicit negative dir-encoded text
+                if self.opt.suppress_face:
+                    if negative_text != '': negative_text += ', '
+
+                    if d == 'back':
+                        negative_text += "face"
+                    # elif d == 'front': negative_text += ""
+                    elif d == 'side':
+                        negative_text += "face"
+                    elif d == 'overhead':
+                        negative_text += "face"
+                    elif d == 'bottom':
+                        negative_text += "face"
+
+                text_z = self.guidance.get_image_embeds([text], [negative_text])
                 self.text_z.append(text_z)
 
     def __del__(self):

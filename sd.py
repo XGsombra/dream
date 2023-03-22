@@ -1,4 +1,4 @@
-from transformers import CLIPTextModel, CLIPTokenizer, logging
+from transformers import CLIPTextModel, CLIPTokenizer, logging CLIPVisionConfig, CLIPVisionModel
 from diffusers import AutoencoderKL, UNet2DConditionModel, PNDMScheduler, DDIMScheduler
 from diffusers.utils.import_utils import is_xformers_available
 
@@ -59,6 +59,10 @@ class StableDiffusion(nn.Module):
         self.text_encoder = CLIPTextModel.from_pretrained(model_key, subfolder="text_encoder").to(self.device)
         self.unet = UNet2DConditionModel.from_pretrained(model_key, subfolder="unet").to(self.device)
 
+        configuration = CLIPVisionConfig()
+        self.image_encoder = CLIPVisionModel(configuration)
+
+
         if is_xformers_available():
             self.unet.enable_xformers_memory_efficient_attention()
         
@@ -90,6 +94,26 @@ class StableDiffusion(nn.Module):
         # Cat for final embeddings
         text_embeddings = torch.cat([uncond_embeddings, text_embeddings])
         return text_embeddings
+
+    def get_image_embeds(self, image, negative_prompt):
+        # prompt, negative_prompt: [str]
+
+        # Tokenize text and get embeddings
+        # text_input = self.tokenizer(prompt, padding='max_length', max_length=self.tokenizer.model_max_length, truncation=True, return_tensors='pt')
+
+        with torch.no_grad():
+            text_embeddings = self.text_encoder(text_input.input_ids.to(self.device))[0]
+            image_embeddings = self.image_encoder(image.to(self.device))[0]
+
+        # Do the same for unconditional embeddings
+        uncond_input = self.tokenizer(negative_prompt, padding='max_length', max_length=self.tokenizer.model_max_length, return_tensors='pt')
+
+        with torch.no_grad():
+            uncond_embeddings = self.text_encoder(uncond_input.input_ids.to(self.device))[0]
+
+        # Cat for final embeddings
+        image_embeddings = torch.cat([uncond_embeddings, image_embeddings])
+        return image_embeddings
 
 
     def train_step(self, text_embeddings, pred_rgb, guidance_scale=100):
