@@ -102,7 +102,7 @@ class StableDiffusion(nn.Module):
         # text_input = self.tokenizer(prompt, padding='max_length', max_length=self.tokenizer.model_max_length, truncation=True, return_tensors='pt')
 
         with torch.no_grad():
-            text_embeddings = self.text_encoder(text_input.input_ids.to(self.device))[0]
+            # text_embeddings = self.text_encoder(text_input.input_ids.to(self.device))[0]
             image_embeddings = self.image_encoder(image.to(self.device))[0]
 
         # Do the same for unconditional embeddings
@@ -210,7 +210,8 @@ class StableDiffusion(nn.Module):
             negative_prompts = [negative_prompts]
 
         # Prompts -> text embeds
-        text_embeds = self.get_text_embeds(prompts, negative_prompts) # [2, 77, 768]
+        # text_embeds = self.get_text_embeds(prompts, negative_prompts) # [2, 77, 768]
+        text_embeds = self.get_image_embeds(prompts, negative_prompts)  # [2, 77, 768]
 
         # Text embeds -> img latents
         latents = self.produce_latents(text_embeds, height=height, width=width, latents=latents, num_inference_steps=num_inference_steps, guidance_scale=guidance_scale) # [1, 4, 64, 64]
