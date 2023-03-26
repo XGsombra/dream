@@ -5,12 +5,14 @@ import math
 import imageio
 import random
 import warnings
+import requests
 import tensorboardX
 
 import numpy as np
 
 import time
 from datetime import datetime
+from PIL import Image
 
 import cv2
 import matplotlib.pyplot as plt
@@ -21,6 +23,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import torch.distributed as dist
 from torch.utils.data import Dataset, DataLoader
+from torchvision import transforms
 
 import trimesh
 from rich.console import Console
@@ -295,71 +298,62 @@ class Trainer(object):
                 self.log(f"[INFO] Loading {self.use_checkpoint} ...")
                 self.load_checkpoint(self.use_checkpoint)
 
-    # calculate the text embs.
-    def prepare_text_embeddings(self):
+    # # calculate the text embs.
+    # def prepare_text_embeddings(self):
 
-        if self.opt.text is None:
-            self.log(f"[WARN] text prompt is not provided.")
-            self.text_z = None
-            return
+    #     if self.opt.text is None:
+    #         self.log(f"[WARN] text prompt is not provided.")
+    #         self.text_z = None
+    #         return
 
-        if not self.opt.dir_text:
-            self.text_z = self.guidance.get_text_embeds([self.opt.text], [self.opt.negative])
-        else:
-            self.text_z = []
-            for d in ['front', 'side', 'back', 'side', 'overhead', 'bottom']:
-                # construct dir-encoded text
-                text = f"{self.opt.text}, {d} view"
+    #     if not self.opt.dir_text:
+    #         self.text_z = self.guidance.get_text_embeds([self.opt.text], [self.opt.negative])
+    #     else:
+    #         self.text_z = []
+    #         for d in ['front', 'side', 'back', 'side', 'overhead', 'bottom']:
+    #             # construct dir-encoded text
+    #             text = f"{self.opt.text}, {d} view"
 
-                negative_text = f"{self.opt.negative}"
+    #             negative_text = f"{self.opt.negative}"
 
-                # explicit negative dir-encoded text
-                if self.opt.suppress_face:
-                    if negative_text != '': negative_text += ', '
+    #             # explicit negative dir-encoded text
+    #             if self.opt.suppress_face:
+    #                 if negative_text != '': negative_text += ', '
 
-                    if d == 'back': negative_text += "face"
-                    # elif d == 'front': negative_text += ""
-                    elif d == 'side': negative_text += "face"
-                    elif d == 'overhead': negative_text += "face"
-                    elif d == 'bottom': negative_text += "face"
+    #                 if d == 'back': negative_text += "face"
+    #                 # elif d == 'front': negative_text += ""
+    #                 elif d == 'side': negative_text += "face"
+    #                 elif d == 'overhead': negative_text += "face"
+    #                 elif d == 'bottom': negative_text += "face"
                 
-                text_z = self.guidance.get_text_embeds([text], [negative_text])
-                self.text_z.append(text_z)
+    #             text_z = self.guidance.get_text_embeds([text], [negative_text])
+    #             self.text_z.append(text_z)
+
+    def clip_normalize(self, image):
+        
+        image = F.interpolate(image, size=224,mode='bicubic')
+        mean=torch.tensor([0.48145466, 0.4578275, 0.40821073]).to(self.device)
+        std=torch.tensor([0.26862954, 0.26130258, 0.27577711]).to(self.device)
+        mean = mean.view(1, -1, 1, 1)
+        std = std.view(1, -1, 1, 1)
+        image = (image - mean) / std
+
+        return image
 
     def prepare_image_embeddings(self):
 
-        if self.opt.text is None:
-            self.log(f"[WARN] text prompt is not provided.")
-            self.text_z = None
+        if self.opt.image is None:
+            self.log(f"[WARN] image filepath is not provided.")
+            self.image_z = None
             return
-
-        if not self.opt.dir_text:
-            self.text_z = self.guidance.get_image_embeds([self.opt.text], [self.opt.negative])
-        else:
-            self.text_z = []
-            for d in ['front', 'side', 'back', 'side', 'overhead', 'bottom']:
-                # construct dir-encoded text
-                text = f"{self.opt.text}, {d} view"
-
-                negative_text = f"{self.opt.negative}"
-
-                # explicit negative dir-encoded text
-                if self.opt.suppress_face:
-                    if negative_text != '': negative_text += ', '
-
-                    if d == 'back':
-                        negative_text += "face"
-                    # elif d == 'front': negative_text += ""
-                    elif d == 'side':
-                        negative_text += "face"
-                    elif d == 'overhead':
-                        negative_text += "face"
-                    elif d == 'bottom':
-                        negative_text += "face"
-
-                text_z = self.guidance.get_image_embeds([text], [negative_text])
-                self.text_z.append(text_z)
-
+        
+        image = Image.open(requests.get(self.opt.image, stream=True).raw)
+        convert_tensor = transforms.ToTensor()
+        image = convert_tensor(image)
+        image = image.unsqueeze(-1)
+        image = self.clip_normalize(image)
+        self.image_z = self.guidance.get_image_embeds(image)
+        
     def __del__(self):
         if self.log_ptr: 
             self.log_ptr.close()

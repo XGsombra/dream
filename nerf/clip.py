@@ -32,6 +32,15 @@ class CLIP(nn.Module):
         text_z = text_z / text_z.norm(dim=-1, keepdim=True)
 
         return text_z
+    
+    def get_image_embeds(self, image):
+
+        # NOTE: negative_prompt is ignored for CLIP.
+
+        image_z = self.clip_model.encode_image(image)
+        image_z = image_z / image_z.norm(dim=-1, keepdim=True)
+
+        return image_z
 
     
     def train_step(self, text_z, pred_rgb):
