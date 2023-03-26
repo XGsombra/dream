@@ -173,7 +173,7 @@ if __name__ == '__main__':
             from sd import StableDiffusion
             guidance = StableDiffusion(device, opt.sd_version, opt.hf_key)
         elif opt.guidance == 'clip':
-            from nerf.clip import CLIP
+            from nerf.nerf_clip import CLIP
             guidance = CLIP(device)
         else:
             raise NotImplementedError(f'--guidance {opt.guidance} is not implemented.')

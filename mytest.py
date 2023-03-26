@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 from torchvision import transforms
 
-from nerf.clip import CLIP
+from nerf.nerf_clip import CLIP
 
 def clip_normalize(image):
         
