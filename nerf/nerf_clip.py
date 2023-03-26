@@ -4,7 +4,7 @@ import torch.nn as nn
 import torchvision.transforms as T
 import torchvision.transforms.functional as TF
 
-import nerf_clip
+import clip
 
 class CLIP(nn.Module):
     def __init__(self, device):
@@ -12,7 +12,7 @@ class CLIP(nn.Module):
 
         self.device = device
 
-        self.clip_model, self.clip_preprocess = nerf_clip.load("ViT-B/16", device=self.device, jit=False)
+        self.clip_model, self.clip_preprocess = clip.load("ViT-B/16", device=self.device, jit=False)
         
          # image augmentation
         self.aug = T.Compose([
@@ -27,7 +27,7 @@ class CLIP(nn.Module):
 
         # NOTE: negative_prompt is ignored for CLIP.
 
-        text = nerf_clip.tokenize(prompt).to(self.device)
+        text = clip.tokenize(prompt).to(self.device)
         text_z = self.clip_model.encode_text(text)
         text_z = text_z / text_z.norm(dim=-1, keepdim=True)
 
