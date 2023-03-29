@@ -350,7 +350,7 @@ class Trainer(object):
         image = Image.open(requests.get(self.opt.image, stream=True).raw)
         convert_tensor = transforms.ToTensor()
         image = convert_tensor(image)
-        image = image.unsqueeze(-1)
+        image = image.unsqueeze(0)
         image = self.clip_normalize(image)
         self.image_z = self.guidance.get_image_embeds(image)
         
