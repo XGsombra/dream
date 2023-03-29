@@ -331,7 +331,7 @@ class Trainer(object):
 
     def clip_normalize(self, image):
         
-        image = F.interpolate(image, size=224,mode='bicubic')
+        image = F.interpolate(image, size=224,mode='bicubic').to(self.device)
         mean=torch.tensor([0.48145466, 0.4578275, 0.40821073]).to(self.device)
         std=torch.tensor([0.26862954, 0.26130258, 0.27577711]).to(self.device)
         mean = mean.view(1, -1, 1, 1)
