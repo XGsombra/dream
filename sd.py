@@ -1,4 +1,4 @@
-from transformers import CLIPTextModel, CLIPTokenizer, logging, CLIPVisionConfig, CLIPVisionModel
+from transformers import CLIPTextModel, CLIPTokenizer, logging, CLIPVisionConfig, CLIPVisionModel, CLIPVisionModelWithProjection
 from diffusers import AutoencoderKL, UNet2DConditionModel, PNDMScheduler, DDIMScheduler
 from diffusers.utils.import_utils import is_xformers_available
 
@@ -63,7 +63,7 @@ class StableDiffusion(nn.Module):
         self.unet = UNet2DConditionModel.from_pretrained(model_key, subfolder="unet").to(self.device)
 
         self.clip_model, self.clip_preprocess = clip.load("ViT-B/16", device=self.device, jit=False)
-        self.image_encoder = CLIPTextModel.from_pretrained(model_key, subfolder="image_encoder").to(self.device)
+        self.image_encoder = CLIPVisionModelWithProjection.from_pretrained(model_key, subfolder="image_encoder").to(self.device)
 
 
         if is_xformers_available():
