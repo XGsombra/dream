@@ -9,7 +9,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from torch.cuda.amp import custom_bwd, custom_fwd 
+from torch.cuda.amp import custom_bwd, custom_fwd
+import clip
 
 class SpecifyGradient(torch.autograd.Function):
     @staticmethod
@@ -59,8 +60,8 @@ class StableDiffusion(nn.Module):
         self.text_encoder = CLIPTextModel.from_pretrained(model_key, subfolder="text_encoder").to(self.device)
         self.unet = UNet2DConditionModel.from_pretrained(model_key, subfolder="unet").to(self.device)
 
-        configuration = CLIPVisionConfig()
-        self.image_encoder = CLIPVisionModel(configuration)
+        self.clip_model, self.clip_preprocess = clip.load("ViT-B/16", device=self.device, jit=False)
+        # self.image_encoder = CLIPVisionModel(configuration)
 
 
         if is_xformers_available():
@@ -95,7 +96,17 @@ class StableDiffusion(nn.Module):
         text_embeddings = torch.cat([uncond_embeddings, text_embeddings])
         return text_embeddings
 
-    def get_image_embeds(self, image, negative_prompt):
+    def get_text_diff(self, text, dir_text):
+        text_input = self.tokenizer(text, padding='max_length', max_length=self.tokenizer.model_max_length,
+                                    truncation=True, return_tensors='pt')
+        dir_text_input = self.tokenizer(dir_text, padding='max_length', max_length=self.tokenizer.model_max_length,
+                                    truncation=True, return_tensors='pt')
+        with torch.no_grad():
+            text_embeddings = self.text_encoder(text_input.input_ids.to(self.device))[0]
+            dir_text_embeddings = self.text_encoder(dir_text_input.input_ids.to(self.device))[0]
+        return dir_text_embeddings - text_embeddings
+
+    def get_image_embeds(self, image, negative_prompt,dir_diff=None):
         # prompt, negative_prompt: [str]
 
         # Tokenize text and get embeddings
@@ -103,7 +114,11 @@ class StableDiffusion(nn.Module):
 
         with torch.no_grad():
             # text_embeddings = self.text_encoder(text_input.input_ids.to(self.device))[0]
-            image_embeddings = self.image_encoder(image.to(self.device))[0]
+            image_embeddings = self.clip_model.encode_image(image.to(self.device))
+            if dir_diff:
+                image_embeddings += dir_diff
+            image_embeddings = image_embeddings / image_embeddings.norm(dim=-1, keepdim=True)
+
 
         # Do the same for unconditional embeddings
         uncond_input = self.tokenizer(negative_prompt, padding='max_length', max_length=self.tokenizer.model_max_length, return_tensors='pt')

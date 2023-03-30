@@ -33,7 +33,7 @@ class CLIP(nn.Module):
 
         return text_z
     
-    def get_image_embeds(self, image):
+    def get_image_embeds(self, image, negative_prompt):
 
         # NOTE: negative_prompt is ignored for CLIP.
 
