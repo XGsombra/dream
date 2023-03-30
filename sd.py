@@ -46,7 +46,9 @@ class StableDiffusion(nn.Module):
             print(f'[INFO] using hugging face custom model key: {hf_key}')
             model_key = hf_key
         elif self.sd_version == '2.1':
-            model_key = "stabilityai/stable-diffusion-2-1-base"
+            # model_key = "stabilityai/stable-diffusion-2-1-base"
+            model_key = "stabilityai/stable-diffusion-2-1-unclip"
+
         elif self.sd_version == '2.0':
             model_key = "stabilityai/stable-diffusion-2-base"
         elif self.sd_version == '1.5':
@@ -61,7 +63,7 @@ class StableDiffusion(nn.Module):
         self.unet = UNet2DConditionModel.from_pretrained(model_key, subfolder="unet").to(self.device)
 
         self.clip_model, self.clip_preprocess = clip.load("ViT-B/16", device=self.device, jit=False)
-        # self.image_encoder = CLIPVisionModel(configuration)
+        self.image_encoder = CLIPTextModel.from_pretrained(model_key, subfolder="image_encoder").to(self.device)
 
 
         if is_xformers_available():
