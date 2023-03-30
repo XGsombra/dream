@@ -219,7 +219,7 @@ class Trainer(object):
             self.prepare_image_embeddings()
         
         else:
-            self.text_z = None
+            self.image_z = None
         
         # try out torch 2.0
         if torch.__version__[0] == '2':
@@ -400,15 +400,15 @@ class Trainer(object):
         
         # torch_vis_2d(pred_rgb[0])
         
-        # text embeddings
-        if self.opt.dir_text:
-            dirs = data['dir'] # [B,]
-            text_z = self.text_z[dirs]
-        else:
-            text_z = self.text_z
+        # # text embeddings
+        # if self.opt.dir_text:
+        #     dirs = data['dir'] # [B,]
+        #     text_z = self.text_z[dirs]
+        # else:
+        #     text_z = self.text_z
         
         # encode pred_rgb to latents
-        loss = self.guidance.train_step(text_z, pred_rgb)
+        loss = self.guidance.train_step(self.image_z, pred_rgb)
 
         # regularizations
         if self.opt.lambda_opacity > 0:
