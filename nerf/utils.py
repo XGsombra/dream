@@ -362,7 +362,7 @@ class Trainer(object):
                 # construct dir-encoded text
                 text = f"{self.opt.text}, {d} view"
                 dir_embedding_diff = self.guidance.get_text_diff(self.opt.text,text)
-
+                print(dir_embedding_diff.shape)
                 negative_text = f"{self.opt.negative}"
 
                 # explicit negative dir-encoded text
