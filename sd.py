@@ -115,7 +115,7 @@ class StableDiffusion(nn.Module):
         with torch.no_grad():
             # text_embeddings = self.text_encoder(text_input.input_ids.to(self.device))[0]
             image_embeddings = self.clip_model.encode_image(image.to(self.device))
-            if dir_diff:
+            if dir_diff is not None:
                 image_embeddings += dir_diff
             image_embeddings = image_embeddings / image_embeddings.norm(dim=-1, keepdim=True)
 
