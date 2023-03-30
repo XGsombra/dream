@@ -543,8 +543,6 @@ class Trainer(object):
 
     def train(self, train_loader, valid_loader, max_epochs):
 
-        assert self.text_z is not None, 'Training must provide a text prompt!'
-
         if self.use_tensorboardX and self.local_rank == 0:
             self.writer = tensorboardX.SummaryWriter(os.path.join(self.workspace, "run", self.name))
 
