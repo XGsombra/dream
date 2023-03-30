@@ -362,7 +362,7 @@ class Trainer(object):
                 # construct dir-encoded text
                 text = f"{self.opt.text}, {d} view"
                 dir_embedding_diff = self.guidance.get_text_diff(self.opt.text,text)
-                print(dir_embedding_diff.shape)
+
                 negative_text = f"{self.opt.negative}"
 
                 # explicit negative dir-encoded text
@@ -379,8 +379,9 @@ class Trainer(object):
                     elif d == 'bottom':
                         negative_text += "face"
 
-                text_z = self.guidance.get_image_embeds(image, [negative_text], dir_diff=dir_embedding_diff)
-                self.text_z.append(text_z)
+                print(dir_embedding_diff.shape)
+                image_z = self.guidance.get_image_embeds(image, [negative_text], dir_diff=dir_embedding_diff)
+                self.image_z.append(image_z)
         
     def __del__(self):
         if self.log_ptr: 
