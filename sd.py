@@ -1,4 +1,4 @@
-from transformers import CLIPTextModel, CLIPTokenizer, CLIPVisionConfig, CLIPVisionModel
+from transformers import CLIPTextModel, CLIPTokenizer, logging, CLIPVisionConfig, CLIPVisionModel
 from diffusers import AutoencoderKL, UNet2DConditionModel, PNDMScheduler, DDIMScheduler
 from diffusers.utils.import_utils import is_xformers_available
 
