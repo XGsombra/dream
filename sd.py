@@ -106,6 +106,7 @@ class StableDiffusion(nn.Module):
         with torch.no_grad():
             text_embeddings = self.text_encoder(text_input.input_ids.to(self.device))[0]
             dir_text_embeddings = self.text_encoder(dir_text_input.input_ids.to(self.device))[0]
+            print(dir_text_embeddings.shape)
         return dir_text_embeddings - text_embeddings
 
     def get_image_embeds(self, image, negative_prompt,dir_diff=None):
