@@ -99,9 +99,9 @@ class StableDiffusion(nn.Module):
         return text_embeddings
 
     def get_text_diff(self, text, dir_text):
-        text_input = self.tokenizer(text, padding='max_length', max_length=self.tokenizer.model_max_length,
+        text_input = self.tokenizer(text, padding=False, max_length=self.tokenizer.model_max_length,
                                     truncation=True, return_tensors='pt')
-        dir_text_input = self.tokenizer(dir_text, padding='max_length', max_length=self.tokenizer.model_max_length,
+        dir_text_input = self.tokenizer(dir_text, padding=False, max_length=self.tokenizer.model_max_length,
                                     truncation=True, return_tensors='pt')
         with torch.no_grad():
             text_embeddings = self.text_encoder(text_input.input_ids.to(self.device))[0]
