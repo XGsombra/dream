@@ -39,7 +39,6 @@ class CLIP(nn.Module):
         with torch.no_grad():
             text_embeddings = self.clip_model.encode_text(text_input)
             dir_text_embeddings = self.clip_model.encode_text(dir_text_input)
-            print(dir_text_embeddings.shape)
         return dir_text_embeddings - text_embeddings
     
     def get_image_embeds(self, image, negative_prompt, dir_diff=None):

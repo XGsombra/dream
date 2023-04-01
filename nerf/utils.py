@@ -358,7 +358,7 @@ class Trainer(object):
             self.image_z = self.guidance.get_image_embeds(image, [self.opt.negative])
         else:
             self.image_z = []
-            for d in ['front', 'side', 'back', 'side', 'overhead', 'bottom']:
+            for d in ['front', 'left', 'back', 'right', 'above', 'bottom']:
                 # construct dir-encoded text
                 text = f"{self.opt.text}, {d} view"
                 dir_embedding_diff = self.guidance.get_text_diff(self.opt.text, text)
