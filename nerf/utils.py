@@ -310,7 +310,7 @@ class Trainer(object):
             self.text_z = self.guidance.get_text_embeds([self.opt.text], [self.opt.negative])
         else:
             self.text_z = []
-            for d in ['front', 'side', 'back', 'side', 'overhead', 'bottom']:
+            for d in ['front', 'left side', 'back', 'right side', 'overhead', 'bottom']:
                 # construct dir-encoded text
                 text = f"{self.opt.text}, {d} view"
 
