@@ -361,7 +361,7 @@ class Trainer(object):
             for d in ['front', 'side', 'back', 'side', 'overhead', 'bottom']:
                 # construct dir-encoded text
                 text = f"{self.opt.text}, {d} view"
-                dir_embedding_diff = self.guidance.get_text_diff(self.opt.text,text)
+                dir_embedding_diff = self.guidance.get_text_diff(self.opt.text, text)
 
                 negative_text = f"{self.opt.negative}"
 

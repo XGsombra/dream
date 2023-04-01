@@ -37,8 +37,10 @@ class CLIP(nn.Module):
         text_input = clip.tokenize(text).to(self.device)
         dir_text_input = clip.tokenize(dir_text).to(self.device)
         with torch.no_grad():
-            text_embeddings = self.clip_model.encode_text(text_input)[0]
-            dir_text_embeddings = self.clip_model.encode_text(dir_text_input)[0]
+            text_embeddings = self.clip_model.encode_text(text_input)
+            text_embeddings = text_embeddings / text_embeddings.norm(dim=-1, keepdim=True)
+            dir_text_embeddings = self.clip_model.encode_text(dir_text_input)
+            dir_text_embeddings = dir_text_embeddings / dir_text_embeddings.norm(dim=-1, keepdim=True)
             print(dir_text_embeddings.shape)
         return dir_text_embeddings - text_embeddings
     
