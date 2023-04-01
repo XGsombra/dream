@@ -32,6 +32,15 @@ class CLIP(nn.Module):
         text_z = text_z / text_z.norm(dim=-1, keepdim=True)
 
         return text_z
+
+    def get_text_diff(self, text, dir_text):
+        text_input = tokenize(text).to(self.device)
+        dir_text_input = tokenize(dir_text).to(self.device)
+        with torch.no_grad():
+            text_embeddings = self.clip_model.encode_text(text_input)[0]
+            dir_text_embeddings = self.clip_model.encode_text(dir_text_input)[0]
+            print(dir_text_embeddings.shape)
+        return dir_text_embeddings - text_embeddings
     
     def get_image_embeds(self, image, negative_prompt, dir_diff=None):
 
