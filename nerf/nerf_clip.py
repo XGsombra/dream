@@ -33,11 +33,13 @@ class CLIP(nn.Module):
 
         return text_z
     
-    def get_image_embeds(self, image, negative_prompt):
+    def get_image_embeds(self, image, negative_prompt, dir_diff=None):
 
         # NOTE: negative_prompt is ignored for CLIP.
 
         image_z = self.clip_model.encode_image(image)
+        if dir_diff is not None:
+            image_z = image_z + dir_diff
         image_z = image_z / image_z.norm(dim=-1, keepdim=True)
 
         return image_z
