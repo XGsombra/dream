@@ -427,17 +427,15 @@ class Trainer(object):
         pred_rgb = outputs['image'].reshape(B, H, W, 3).permute(0, 3, 1, 2).contiguous() # [1, 3, H, W]
         pred_depth = outputs['depth'].reshape(B, 1, H, W)
         
-        # torch_vis_2d(pred_rgb[0])
-        
-        # # text embeddings
-        # if self.opt.dir_text:
-        #     dirs = data['dir'] # [B,]
-        #     text_z = self.text_z[dirs]
-        # else:
-        #     text_z = self.text_z
-        
+        # text embeddings
+        if self.opt.dir_text:
+            dirs = data['dir'] # [B,]
+            image_z = self.image_z[dirs]
+        else:
+            image_z = self.image_z
+
         # encode pred_rgb to latents
-        loss = self.guidance.train_step(self.image_z, pred_rgb)
+        loss = self.guidance.train_step(image_z, pred_rgb)
 
         # regularizations
         if self.opt.lambda_opacity > 0:
