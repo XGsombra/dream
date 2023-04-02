@@ -426,7 +426,8 @@ class Trainer(object):
         outputs = self.model.render(rays_o, rays_d, staged=False, perturb=True, bg_color=bg_color, ambient_ratio=ambient_ratio, shading=shading, force_all_rays=True, **vars(self.opt))
         pred_rgb = outputs['image'].reshape(B, H, W, 3).permute(0, 3, 1, 2).contiguous() # [1, 3, H, W]
         pred_depth = outputs['depth'].reshape(B, 1, H, W)
-        
+        plt.imshow(pred_rgb.detach().permute(0, 2, 3, 1).cpu().numpy()[0, ...])
+        plt.show()
         # text embeddings
         if self.opt.dir_text:
             dirs = data['dir'] # [B,]
