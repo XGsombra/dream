@@ -104,8 +104,8 @@ class StableDiffusion(nn.Module):
         dir_text_input = self.tokenizer(dir_text, padding="max_length", max_length=self.tokenizer.model_max_length,
                                     truncation=True, return_tensors='pt')
         with torch.no_grad():
-            text_embeddings = self.text_encoder(text_input.input_ids.to(self.device))[0]
-            dir_text_embeddings = self.text_encoder(dir_text_input.input_ids.to(self.device))[0]
+            text_embeddings = self.text_encoder(text_input.input_ids.to(self.device)).pooler_output[0]
+            dir_text_embeddings = self.text_encoder(dir_text_input.input_ids.to(self.device)).pooler_output[0]
             print("text latent",dir_text_embeddings.shape)
         return dir_text_embeddings - text_embeddings
 
