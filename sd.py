@@ -1,4 +1,4 @@
-from transformers import CLIPTextModel, CLIPTokenizer, logging, CLIPVisionConfig, CLIPVisionModel, CLIPVisionModelWithProjection
+from transformers import CLIPTextModel, CLIPTextModelWithProjection, CLIPTokenizer, logging, CLIPVisionConfig, CLIPVisionModel, CLIPVisionModelWithProjection
 from diffusers import AutoencoderKL, UNet2DConditionModel, PNDMScheduler, DDIMScheduler
 from diffusers.utils.import_utils import is_xformers_available
 
@@ -59,7 +59,7 @@ class StableDiffusion(nn.Module):
         # Create model
         self.vae = AutoencoderKL.from_pretrained(model_key, subfolder="vae").to(self.device)
         self.tokenizer = CLIPTokenizer.from_pretrained(model_key, subfolder="tokenizer")
-        self.text_encoder = CLIPTextModel.from_pretrained(model_key, subfolder="text_encoder").to(self.device)
+        self.text_encoder = CLIPTextModelWithProjection.from_pretrained(model_key, subfolder="text_encoder").to(self.device)
         self.unet = UNet2DConditionModel.from_pretrained(model_key, subfolder="unet").to(self.device)
 
         self.clip_model, self.clip_preprocess = clip.load("ViT-B/16", device=self.device, jit=False)
@@ -120,7 +120,8 @@ class StableDiffusion(nn.Module):
 
             # image_embeddings = self.clip_model.encode_image(image.to(self.device))
             image_embeddings = self.image_encoder((image.to(self.device))).image_embeds.tile((77,1)).unsqueeze(0)
-            print("img latent",image_embeddings.shape)
+
+            print("img latent", image_embeddings.shape)
             if dir_diff is not None:
                 image_embeddings += dir_diff
             image_embeddings = image_embeddings / image_embeddings.norm(dim=-1, keepdim=True)
