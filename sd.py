@@ -59,7 +59,7 @@ class StableDiffusion(nn.Module):
         # Create model
         self.vae = AutoencoderKL.from_pretrained(model_key, subfolder="vae").to(self.device)
         self.tokenizer = CLIPTokenizer.from_pretrained(model_key, subfolder="tokenizer")
-        self.text_encoder = CLIPTextModelWithProjection.from_pretrained(model_key, subfolder="text_encoder").to(self.device)
+        self.text_encoder = CLIPTextModel.from_pretrained(model_key, subfolder="text_encoder").to(self.device)
         self.unet = UNet2DConditionModel.from_pretrained(model_key, subfolder="unet").to(self.device)
 
         self.clip_model, self.clip_preprocess = clip.load("ViT-B/16", device=self.device, jit=False)
@@ -109,29 +109,22 @@ class StableDiffusion(nn.Module):
             print("text latent",dir_text_embeddings.shape)
         return dir_text_embeddings - text_embeddings
 
-    def get_image_embeds(self, image, negative_prompt,dir_diff=None):
+    def get_image_embeds(self, image, negative_prompt, dir_diff=None):
         # prompt, negative_prompt: [str]
 
-        # Tokenize text and get embeddings
-        # text_input = self.tokenizer(prompt, padding='max_length', max_length=self.tokenizer.model_max_length, truncation=True, return_tensors='pt')
-
+        # Get image embeddings
         with torch.no_grad():
-            # text_embeddings = self.text_encoder(text_input.input_ids.to(self.device))[0]
+            image_embeddings = self.image_encoder((image.to(self.device))).image_embeds[0]
 
-            # image_embeddings = self.clip_model.encode_image(image.to(self.device))
-            image_embeddings = self.image_encoder((image.to(self.device))).image_embeds.tile((77,1)).unsqueeze(0)
-
-            print("img latent", image_embeddings.shape)
             if dir_diff is not None:
                 image_embeddings += dir_diff
             image_embeddings = image_embeddings / image_embeddings.norm(dim=-1, keepdim=True)
-
 
         # Do the same for unconditional embeddings
         uncond_input = self.tokenizer(negative_prompt, padding='max_length', max_length=self.tokenizer.model_max_length, return_tensors='pt')
 
         with torch.no_grad():
-            uncond_embeddings = self.text_encoder(uncond_input.input_ids.to(self.device))[0]
+            uncond_embeddings = self.text_encoder(uncond_input.input_ids.to(self.device)).pooler_output[0]
 
         # Cat for final embeddings
         image_embeddings = torch.cat([uncond_embeddings, image_embeddings])

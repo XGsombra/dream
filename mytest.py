@@ -3,6 +3,7 @@ from PIL import Image
 import torch
 import torch.nn.functional as F
 from torchvision import transforms
+from diffusers import StableDiffusionPipeline, DiffusionPipeline
 from transformers import CLIPVisionModelWithProjection, CLIPTokenizer, CLIPTextModelWithProjection
 
 from nerf.nerf_clip import CLIP
@@ -33,11 +34,18 @@ image = clip_normalize(image)
 # guidance = StableDiffusion("cpu", "2.1", None)
 image = image.to("cuda")
 model_key = "stabilityai/stable-diffusion-2-1-unclip"
-image_encoder = CLIPVisionModelWithProjection.from_pretrained(model_key, subfolder="image_encoder").to("cuda")
-tokenizer = CLIPTokenizer.from_pretrained(model_key, subfolder="tokenizer").to("cuda")
-text_encoder = CLIPTextModelWithProjection.from_pretrained(model_key, subfolder="text_encoder").to("cuda")
-# print(image_encoder(image).image_embeds.size())
+# model_key = "stabilityai/stable-diffusion-2-1-base"
 
+# image_encoder = CLIPVisionModelWithProjection.from_pretrained(model_key, subfolder="image_encoder").to("cuda")
+# print("sss")
+# tokenizer = CLIPTokenizer.from_pretrained(model_key, subfolder="tokenizer").to("cuda")
+# print("sss")
+# text_encoder = CLIPTextModelWithProjection.from_pretrained(model_key, subfolder="text_encoder").to("cuda")
+# print("sss")
+
+# pipe = StableDiffusionPipeline.from_pretrained(model_key, torch_dtype=torch.float16)
+pipe = DiffusionPipeline.from_pretrained(model_key, torch_dtype=torch.float16)
+print(pipe.tokenizer)
 ###########################################################
 with torch.no_grad():
     text_input = tokenizer("chimpanzee", padding='max_length', max_length=tokenizer.model_max_length,
