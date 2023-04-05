@@ -119,7 +119,7 @@ class StableDiffusion(nn.Module):
             # text_embeddings = self.text_encoder(text_input.input_ids.to(self.device))[0]
 
             # image_embeddings = self.clip_model.encode_image(image.to(self.device))
-            image_embeddings = self.encode_imgs((image.to(self.device)))
+            image_embeddings = self.image_encoder((image.to(self.device))).image_embeds.unsqueeze(0)
             print("img latent",image_embeddings.shape)
             if dir_diff is not None:
                 image_embeddings += dir_diff
