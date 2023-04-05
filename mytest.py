@@ -40,7 +40,11 @@ text_encoder = CLIPTextModelWithProjection.from_pretrained(model_key, subfolder=
 
 ###########################################################
 with torch.no_grad():
-    text_embeddings = text_encoder("asdasdasdada".input_ids.to("cuda"))[0]
+    text_input = tokenizer("chimpanzee", padding='max_length', max_length=tokenizer.model_max_length,
+                                truncation=True, return_tensors='pt')
+
+    text_embeddings = text_encoder(text_input.input_ids.to("cuda"))[0]
+    print(text_embeddings.size())
 
     image_embeddings = image_encoder(image).image_embeds.unsqueeze(0)
     print(image_embeddings.size())
