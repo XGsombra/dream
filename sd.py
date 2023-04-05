@@ -86,13 +86,13 @@ class StableDiffusion(nn.Module):
         text_input = self.tokenizer(prompt, padding='max_length', max_length=self.tokenizer.model_max_length, truncation=True, return_tensors='pt')
 
         with torch.no_grad():
-            text_embeddings = self.text_encoder(text_input.input_ids.to(self.device))[0]
+            text_embeddings = self.text_encoder(text_input.input_ids.to(self.device)).pooler_output[0]
 
         # Do the same for unconditional embeddings
         uncond_input = self.tokenizer(negative_prompt, padding='max_length', max_length=self.tokenizer.model_max_length, return_tensors='pt')
 
         with torch.no_grad():
-            uncond_embeddings = self.text_encoder(uncond_input.input_ids.to(self.device))[0]
+            uncond_embeddings = self.text_encoder(uncond_input.input_ids.to(self.device)).pooler_output[0]
 
         # Cat for final embeddings
         text_embeddings = torch.cat([uncond_embeddings, text_embeddings])
