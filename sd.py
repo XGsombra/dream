@@ -104,17 +104,23 @@ class StableDiffusion(nn.Module):
         dir_text_input = self.tokenizer(dir_text, padding="max_length", max_length=self.tokenizer.model_max_length,
                                     truncation=True, return_tensors='pt')
         with torch.no_grad():
-            text_embeddings = self.text_encoder(text_input.input_ids.to(self.device)).pooler_output
-            dir_text_embeddings = self.text_encoder(dir_text_input.input_ids.to(self.device)).pooler_output
+            text_embeddings = self.text_encoder(text_input.input_ids.to(self.device))[0]
+            dir_text_embeddings = self.text_encoder(dir_text_input.input_ids.to(self.device))[0]
             print("text latent",dir_text_embeddings.shape)
         return dir_text_embeddings - text_embeddings
 
-    def get_image_embeds(self, image, negative_prompt, dir_diff=None):
+    def get_image_embeds(self, image, negative_prompt, dir_diff=None, prompt=None):
         # prompt, negative_prompt: [str]
 
         # Get image embeddings
         with torch.no_grad():
-            image_embeddings = self.image_encoder((image.to(self.device))).image_embeds
+            if prompt is None:
+                image_embeddings = self.image_encoder((image.to(self.device))).image_embeds.tile((77, 1)).unsqueeze(0)
+            else:
+                prompt_input = self.tokenizer(prompt, padding='max_length', max_length=self.tokenizer.model_max_length,
+                                              return_tensors='pt')
+                image_embeddings = self.text_encoder(prompt_input.input_ids.to(self.device))[0]
+                image_embeddings[:, 2, :] = self.image_encoder((image.to(self.device))).image_embeds
 
             if dir_diff is not None:
                 image_embeddings += dir_diff
@@ -124,7 +130,7 @@ class StableDiffusion(nn.Module):
         uncond_input = self.tokenizer(negative_prompt, padding='max_length', max_length=self.tokenizer.model_max_length, return_tensors='pt')
 
         with torch.no_grad():
-            uncond_embeddings = self.text_encoder(uncond_input.input_ids.to(self.device)).last_hidden_state[0]
+            uncond_embeddings = self.text_encoder(uncond_input.input_ids.to(self.device))[0]
 
         # Cat for final embeddings
         image_embeddings = torch.cat([uncond_embeddings, image_embeddings])
