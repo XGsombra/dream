@@ -61,6 +61,7 @@ class StableDiffusion(nn.Module):
         self.tokenizer = CLIPTokenizer.from_pretrained(model_key, subfolder="tokenizer")
         self.text_encoder = CLIPTextModel.from_pretrained(model_key, subfolder="text_encoder").to(self.device)
         self.unet = UNet2DConditionModel.from_pretrained(model_key, subfolder="unet").to(self.device)
+        self.unet.class_embedding = None
 
         self.clip_model, self.clip_preprocess = clip.load("ViT-B/16", device=self.device, jit=False)
         self.image_encoder = CLIPVisionModelWithProjection.from_pretrained(model_key, subfolder="image_encoder").to(self.device)
