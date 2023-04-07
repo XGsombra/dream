@@ -47,7 +47,7 @@ class StableDiffusion(nn.Module):
             model_key = hf_key
         elif self.sd_version == '2.1':
             # model_key = "stabilityai/stable-diffusion-2-1-base"
-            model_key = "stabilityai/stable-diffusion-2-1-unclip-small"
+            model_key = "stabilityai/stable-diffusion-2-1-unclip"
 
         elif self.sd_version == '2.0':
             model_key = "stabilityai/stable-diffusion-2-base"
