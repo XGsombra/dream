@@ -380,7 +380,7 @@ class Trainer(object):
                         negative_text += "face"
 
                 print(dir_embedding_diff.shape)
-                image_z = self.guidance.get_image_embeds(image, [negative_text], dir_diff=dir_embedding_diff)
+                image_z = self.guidance.get_image_embeds(image, [negative_text], dir_diff=dir_embedding_diff, prompt=self.opt.text)
                 self.image_z.append(image_z)
         
     def __del__(self):
