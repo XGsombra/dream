@@ -346,41 +346,46 @@ class Trainer(object):
             self.log(f"[WARN] image filepath is not provided.")
             self.image_z = None
             return
-        
-        image = Image.open(requests.get(self.opt.image, stream=True).raw)
-        convert_tensor = transforms.ToTensor()
-        image = convert_tensor(image)
-        image = image.unsqueeze(0)
-        image = self.clip_normalize(image)
+
+        images = []
+        for path in self.opt.image:
+            image = Image.open(requests.get(path, stream=True).raw)
+            convert_tensor = transforms.ToTensor()
+            image = convert_tensor(image)
+            image = image.unsqueeze(0)
+            image = self.clip_normalize(image)
+            images.append(image)
         # self.image_z = self.guidance.get_image_embeds(image)
 
         if not self.opt.dir_text:
             self.image_z = self.guidance.get_image_embeds(image, [self.opt.negative])
         else:
             self.image_z = []
-            for d in ['front', 'left', 'back', 'right', 'overhead', 'bottom']:
+            # for d in ['front', 'side', 'back', 'side', 'overhead', 'bottom']:
+            for image in images:
                 # construct dir-encoded text
-                text = f"{self.opt.text}, {d} view"
-                dir_embedding_diff = self.guidance.get_text_diff(self.opt.text, text)
-
-                negative_text = f"{self.opt.negative}"
-
-                # explicit negative dir-encoded text
-                if self.opt.suppress_face:
-                    if negative_text != '': negative_text += ', '
-
-                    if d == 'back':
-                        negative_text += "face"
-                    # elif d == 'front': negative_text += ""
-                    elif d == 'side':
-                        negative_text += "face"
-                    elif d == 'overhead':
-                        negative_text += "face"
-                    elif d == 'bottom':
-                        negative_text += "face"
-
-                print(dir_embedding_diff.shape)
-                image_z = self.guidance.get_image_embeds(image, [negative_text], dir_diff=dir_embedding_diff, prompt=self.opt.text)
+                # text = f"{self.opt.text}, {d} view"
+                # dir_embedding_diff = self.guidance.get_text_diff(self.opt.text, text)
+                #
+                # negative_text = f"{self.opt.negative}"
+                #
+                # # explicit negative dir-encoded text
+                # if self.opt.suppress_face:
+                #     if negative_text != '': negative_text += ', '
+                #
+                #     if d == 'back':
+                #         negative_text += "face"
+                #     # elif d == 'front': negative_text += ""
+                #     elif d == 'side':
+                #         negative_text += "face"
+                #     elif d == 'overhead':
+                #         negative_text += "face"
+                #     elif d == 'bottom':
+                #         negative_text += "face"
+                #
+                # print(dir_embedding_diff.shape)
+                # image_z = self.guidance.get_image_embeds(image, [negative_text], dir_diff=dir_embedding_diff)
+                image_z = self.guidance.get_image_embeds(image, [negative_text])
                 self.image_z.append(image_z)
         
     def __del__(self):
