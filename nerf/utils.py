@@ -385,7 +385,7 @@ class Trainer(object):
                 #
                 # print(dir_embedding_diff.shape)
                 # image_z = self.guidance.get_image_embeds(image, [negative_text], dir_diff=dir_embedding_diff)
-                image_z = self.guidance.get_image_embeds(image, [negative_text])
+                image_z = self.guidance.get_image_embeds(image, None)
                 self.image_z.append(image_z)
         
     def __del__(self):
