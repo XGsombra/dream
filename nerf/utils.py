@@ -356,7 +356,8 @@ class Trainer(object):
             image = image.unsqueeze(0)
             image = self.clip_normalize(image)
         else:
-            image = load_image(self.opt.image)
+            # image = load_image(self.opt.image)
+            image = Image.open(requests.get(self.opt.image, stream=True).raw) # PIL format for encoding
 
         # self.image_z = self.guidance.get_image_embeds(image)
 
