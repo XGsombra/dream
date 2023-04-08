@@ -411,7 +411,7 @@ class Trainer(object):
         else:
             batch_size = 1
         batch_size = batch_size * 1
-
+        print(batch_size)
         noise_level = torch.tensor([0], device=self.device)
         self.image_z = self.guidance.pipeline._encode_image(
             image=image,
