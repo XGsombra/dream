@@ -394,7 +394,7 @@ class Trainer(object):
                     elif d == 'bottom':
                         negative_text += "face"
 
-                text_z = self.text_z = self.guidance.pipeline._encode_prompt(
+                text_z = self.guidance.pipeline._encode_prompt(
                     prompt=[self.opt.text],
                     device=self.device,
                     num_images_per_prompt=1,
