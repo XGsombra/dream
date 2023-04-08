@@ -396,11 +396,11 @@ class Trainer(object):
                         negative_text += "face"
 
                 text_z = self.guidance.pipeline._encode_prompt(
-                    prompt=[self.opt.text],
+                    prompt=text,
                     device=self.device,
                     num_images_per_prompt=1,
                     do_classifier_free_guidance=True,
-                    negative_prompt=[self.opt.negative],
+                    negative_prompt=negative_text,
                     prompt_embeds=None,
                     negative_prompt_embeds=None,
                 )
