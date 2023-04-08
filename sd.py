@@ -153,7 +153,7 @@ class StableDiffusion(nn.Module):
         return image_embeddings
 
 
-    def train_step(self, prompt_embeds, image_embeds=None, pred_rgb, guidance_scale=100):
+    def train_step(self, prompt_embeds, image_embeds, pred_rgb, guidance_scale=100):
         
         # interp to 512x512 to be fed into vae.
 
