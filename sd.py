@@ -1,6 +1,8 @@
 from transformers import CLIPTextModel, CLIPTextModelWithProjection, CLIPTokenizer, logging, CLIPVisionConfig, CLIPVisionModel, CLIPVisionModelWithProjection
 from diffusers import AutoencoderKL, UNet2DConditionModel, PNDMScheduler, DDIMScheduler
 from diffusers.utils.import_utils import is_xformers_available
+from diffusers import StableUnCLIPImg2ImgPipeline
+
 
 # suppress partial model loading warning
 logging.set_verbosity_error()
@@ -55,16 +57,29 @@ class StableDiffusion(nn.Module):
             model_key = "runwayml/stable-diffusion-v1-5"
         else:
             raise ValueError(f'Stable-diffusion version {self.sd_version} not supported.')
+        
+        # Use pipeline models
+        self.pipeline = StableUnCLIPImg2ImgPipeline.from_pretrained(
+            model_key, torch_dtype=torch.float16, variation="fp16"
+        ).to(self.device)
+
+        self.vae = self.pipeline.vae
+        self.tokenizer = self.pipeline.tokenizer
+        self.text_encoder = self.pipeline.text_encoder
+        self.image_normalizer = self.pipeline.image_normalizer
+        self.text_encoder = self.pipeline.text_encoder
+        self.unet = self.pipeline.unet
+        self.image_encoder = self.pipeline.image_encoder
 
         # Create model
-        self.vae = AutoencoderKL.from_pretrained(model_key, subfolder="vae").to(self.device)
-        self.tokenizer = CLIPTokenizer.from_pretrained(model_key, subfolder="tokenizer")
-        self.text_encoder = CLIPTextModel.from_pretrained(model_key, subfolder="text_encoder").to(self.device)
-        self.unet = UNet2DConditionModel.from_pretrained(model_key, subfolder="unet").to(self.device)
-        self.unet.class_embedding = None
+        # self.vae = AutoencoderKL.from_pretrained(model_key, subfolder="vae").to(self.device)
+        # self.tokenizer = CLIPTokenizer.from_pretrained(model_key, subfolder="tokenizer")
+        # self.text_encoder = CLIPTextModel.from_pretrained(model_key, subfolder="text_encoder").to(self.device)
+        # self.unet = UNet2DConditionModel.from_pretrained(model_key, subfolder="unet").to(self.device)
+        # self.unet.class_embedding = None
 
-        self.clip_model, self.clip_preprocess = clip.load("ViT-B/16", device=self.device, jit=False)
-        self.image_encoder = CLIPVisionModelWithProjection.from_pretrained(model_key, subfolder="image_encoder").to(self.device)
+        # self.clip_model, self.clip_preprocess = clip.load("ViT-B/16", device=self.device, jit=False)
+        # self.image_encoder = CLIPVisionModelWithProjection.from_pretrained(model_key, subfolder="image_encoder").to(self.device)
 
 
         if is_xformers_available():
@@ -138,10 +153,11 @@ class StableDiffusion(nn.Module):
         return image_embeddings
 
 
-    def train_step(self, text_embeddings, pred_rgb, guidance_scale=100):
+    def train_step(self, prompt_embeds, image_embeds=None, pred_rgb, guidance_scale=100):
         
         # interp to 512x512 to be fed into vae.
 
+        #TODO: verify 512 or 768
         pred_rgb_512 = F.interpolate(pred_rgb, (512, 512), mode='bilinear', align_corners=False)
 
         # timestep ~ U(0.02, 0.98) to avoid very high/low noise level
@@ -157,8 +173,16 @@ class StableDiffusion(nn.Module):
             latents_noisy = self.scheduler.add_noise(latents, noise, t)
             # pred noise
             latent_model_input = torch.cat([latents_noisy] * 2)
-            noise_pred = self.unet(latent_model_input, t, encoder_hidden_states=text_embeddings).sample
-
+            
+            # noise_pred = self.unet(latent_model_input, t, encoder_hidden_states=text_embeddings).sample
+            # TODO: alternative here!
+            noise_pred = self.unet(
+                latent_model_input,
+                t,
+                encoder_hidden_states=prompt_embeds,
+                class_labels=image_embeds,
+                # cross_attention_kwargs=None,
+            ).sample
         # perform guidance (high scale from paper!)
         noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
         noise_pred = noise_pred_text + guidance_scale * (noise_pred_text - noise_pred_uncond)
