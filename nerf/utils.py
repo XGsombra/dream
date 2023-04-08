@@ -412,12 +412,12 @@ class Trainer(object):
         else:
             batch_size = 1
         batch_size = batch_size * 1
-        print(batch_size)
+        # print(batch_size)
         noise_level = torch.tensor([0], device=self.device)
         self.image_z = self.guidance.pipeline._encode_image(
             image=image,
             device=self.device,
-            batch_size=batch_size,
+            batch_size=1,
             num_images_per_prompt=1,
             do_classifier_free_guidance=True,
             noise_level=noise_level,
