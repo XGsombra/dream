@@ -14,6 +14,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--text', default=None, help="text prompt")
     parser.add_argument('--image', default=None, help="image filepath")
+    parser.add_argument('--image_dir', default=0, help="image direction")
     parser.add_argument('--negative', default='', type=str, help="negative text prompt")
     parser.add_argument('-O', action='store_true', help="equals --fp16 --cuda_ray --dir_text")
     parser.add_argument('-O2', action='store_true', help="equals --backbone vanilla --dir_text")
