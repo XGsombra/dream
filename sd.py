@@ -75,7 +75,10 @@ class StableDiffusion(nn.Module):
         # self.vae = AutoencoderKL.from_pretrained(model_key, subfolder="vae").to(self.device)
         # self.tokenizer = CLIPTokenizer.from_pretrained(model_key, subfolder="tokenizer")
         # self.text_encoder = CLIPTextModel.from_pretrained(model_key, subfolder="text_encoder").to(self.device)
-        # self.unet = UNet2DConditionModel.from_pretrained(model_key, subfolder="unet").to(self.device)
+        self.unet_no_dir = UNet2DConditionModel.from_pretrained(
+            "stabilityai/stable-diffusion-2-base",
+            subfolder="unet"
+        ).to(self.device)
         # self.unet.class_embedding = None
 
         # self.clip_model, self.clip_preprocess = clip.load("ViT-B/16", device=self.device, jit=False)
@@ -176,13 +179,19 @@ class StableDiffusion(nn.Module):
             
             # noise_pred = self.unet(latent_model_input, t, encoder_hidden_states=text_embeddings).sample
             # TODO: alternative here!
-            noise_pred = self.unet(
-                latent_model_input,
-                t,
-                encoder_hidden_states=prompt_embeds,
-                class_labels=image_embeds,
-                # cross_attention_kwargs=None,
-            ).sample
+            if image_embeds is not None:
+                noise_pred = self.unet(
+                    latent_model_input,
+                    t,
+                    encoder_hidden_states=prompt_embeds,
+                    class_labels=image_embeds
+                ).sample
+            else:
+                noise_pred = self.unet_no_dir(
+                    latent_model_input,
+                    t,
+                    encoder_hidden_states=prompt_embeds
+                ).sample
         # perform guidance (high scale from paper!)
         noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
         noise_pred = noise_pred_text + guidance_scale * (noise_pred_text - noise_pred_uncond)

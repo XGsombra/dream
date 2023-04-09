@@ -526,7 +526,7 @@ class Trainer(object):
             text_z = self.text_z
 
         # encode pred_rgb to latents
-        image_z = self.image_z if dirs[0] == self.opt.image_dir else None
+        image_z = self.image_z if dirs.item() == self.opt.image_dir else None
         loss = self.guidance.train_step(text_z, image_z, pred_rgb)
 
         # regularizations
