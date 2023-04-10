@@ -770,6 +770,8 @@ class NeRFRenderer(nn.Module):
 
         # convert to bitfield
         density_thresh = min(self.mean_density, self.density_thresh)
+        if not np.greater(self.mean_density, 0):
+            density_thresh = self.density_thresh
         if self.cuda_ray:
             self.density_bitfield = raymarching.packbits(self.density_grid, density_thresh, self.density_bitfield)
         elif self.taichi_ray:
