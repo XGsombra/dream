@@ -4,7 +4,7 @@ import torch.nn as nn
 import torchvision.transforms as T
 import torchvision.transforms.functional as TF
 
-import clip
+import nerf_clip
 
 class CLIP(nn.Module):
     def __init__(self, device):
@@ -33,33 +33,15 @@ class CLIP(nn.Module):
 
         return text_z
 
-    def get_text_diff(self, text, dir_text):
-        text_input = clip.tokenize(text).to(self.device)
-        dir_text_input = clip.tokenize(dir_text).to(self.device)
-        with torch.no_grad():
-            text_embeddings = self.clip_model.encode_text(text_input)
-            dir_text_embeddings = self.clip_model.encode_text(dir_text_input)
-        return dir_text_embeddings - text_embeddings
     
-    def get_image_embeds(self, image, negative_prompt, dir_diff=None):
-
-        # NOTE: negative_prompt is ignored for CLIP.
-
-        image_z = self.clip_model.encode_image(image)
-        if dir_diff is not None:
-            image_z = image_z + dir_diff
-        image_z = image_z / image_z.norm(dim=-1, keepdim=True)
-
-        return image_z
-
-    
-    def train_step(self, image_z, pred_rgb):
+    def train_step(self, text_z, pred_rgb):
 
         pred_rgb = self.aug(pred_rgb)
 
-        pred_image_z = self.clip_model.encode_image(pred_rgb)
-        pred_image_z = pred_image_z / pred_image_z.norm(dim=-1, keepdim=True) # normalize features
-        loss = - (pred_image_z * image_z).sum(-1).mean()
+        image_z = self.clip_model.encode_image(pred_rgb)
+        image_z = image_z / image_z.norm(dim=-1, keepdim=True) # normalize features
+
+        loss = - (image_z * text_z).sum(-1).mean()
 
         return loss
 
