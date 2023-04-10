@@ -374,7 +374,9 @@ class Trainer(object):
         
         outputs = self.model.render(rays_o, rays_d, mvp, H, W, staged=False, perturb=True, bg_color=bg_color, ambient_ratio=ambient_ratio, shading=shading, binarize=binarize)
         pred_depth = outputs['depth'].reshape(B, 1, H, W)
-
+        plt.imshow(pred_rgb.detach().permute(0, 2, 3, 1).cpu().numpy()[0, ...])
+        plt.axis("off")
+        plt.show()
         if as_latent:
             pred_rgb = torch.cat([outputs['image'], outputs['weights_sum'].unsqueeze(-1)], dim=-1).reshape(B, H, W, 4).permute(0, 3, 1, 2).contiguous() # [1, 4, H, W]
         else:
@@ -383,6 +385,7 @@ class Trainer(object):
         # text embeddings
         if self.opt.dir_text:
             dirs = data['dir'] # [B,]
+            print(dirs)
             text_z = self.text_z[dirs]
         else:
             text_z = self.text_z
