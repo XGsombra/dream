@@ -386,8 +386,8 @@ class Trainer(object):
         # text embeddings
         if self.opt.dir_text:
             dirs = data['dir'] # [B,]
-            print(dirs)
             text_z = self.text_z[dirs]
+            print(dirs)
         else:
             text_z = self.text_z
         

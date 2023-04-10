@@ -34,7 +34,7 @@ class CLIP(nn.Module):
         return text_z
 
     
-    def train_step(self, text_z, pred_rgb):
+    def train_step(self, text_z, pred_rgb, as_latent=None):
 
         pred_rgb = self.aug(pred_rgb)
 
