@@ -4,7 +4,7 @@ import torch.nn as nn
 import torchvision.transforms as T
 import torchvision.transforms.functional as TF
 
-import nerf_clip
+import clip
 
 class CLIP(nn.Module):
     def __init__(self, device):
