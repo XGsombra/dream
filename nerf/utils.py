@@ -376,26 +376,31 @@ class Trainer(object):
             )
         else:
             self.text_z = []
-            for d in ['front', 'left', 'back', 'right', 'overhead', 'bottom']:
+            self.image_z = []
+            for d in ['front', 'side', 'back', 'side', 'overhead', 'bottom']:
                 # construct dir-encoded text
                 text = f"{self.opt.text}, {d} view"
                 negative_text = f"{self.opt.negative}"
+                noise_level = torch.tensor([0], device=self.device)
 
                 # explicit negative dir-encoded text
                 if self.opt.suppress_face:
                     if negative_text != '': negative_text += ', '
-
-                    if d == 'back':
+                    if d == 'back': 
                         negative_text += "face"
+                        noise_level = torch.tensor([0.2], device=self.device)
                     # elif d == 'front': negative_text += ""
-                    elif d == 'side':
+                    elif d == 'side': 
                         negative_text += "face"
-                    elif d == 'overhead':
+                        noise_level = torch.tensor([0.2], device=self.device)
+                    elif d == 'overhead': 
                         negative_text += "face"
-                    elif d == 'bottom':
+                        noise_level = torch.tensor([0.2], device=self.device)
+                    elif d == 'bottom': 
                         negative_text += "face"
+                        noise_level = torch.tensor([0.2], device=self.device)
 
-                text_z = self.guidance.pipeline._encode_prompt(
+                text_z = self.guidance.pipe._encode_prompt(
                     prompt=text,
                     device=self.device,
                     num_images_per_prompt=1,
@@ -405,25 +410,20 @@ class Trainer(object):
                     negative_prompt_embeds=None,
                 )
                 self.text_z.append(text_z)
-        
-        # Image embedding
-        if self.text_z is not None and isinstance(self.text_z, list):
-            batch_size = len(self.text_z)
-        else:
-            batch_size = 1
-        batch_size = batch_size * 1
-        # print(batch_size)
-        noise_level = torch.tensor([0], device=self.device)
-        self.image_z = self.guidance.pipeline._encode_image(
-            image=image,
-            device=self.device,
-            batch_size=1,
-            num_images_per_prompt=1,
-            do_classifier_free_guidance=True,
-            noise_level=noise_level,
-            generator=None,
-            image_embeds=None,
-        )
+
+                # Image embedding
+                # noise_level = torch.tensor([0], device=self.device)
+                image_z = self.guidance.pipe._encode_image(
+                    image=image,
+                    device=self.device,
+                    batch_size=1,
+                    num_images_per_prompt=1,
+                    do_classifier_free_guidance=True,
+                    noise_level=noise_level,
+                    generator=None,
+                    image_embeds=None,
+                )
+                self.image_z.append(image_z)
 
     def prepare_image_embeddings(self):
 
@@ -521,11 +521,13 @@ class Trainer(object):
         if self.opt.dir_text:
             dirs = data['dir'] # [B,]
             text_z = self.text_z[dirs]
+            image_z = self.image_z[dirs]
         else:
             text_z = self.text_z
+            image_z = self.image_z
 
         # encode pred_rgb to latents
-        loss = self.guidance.train_step(text_z,self.image_z, pred_rgb)
+        loss = self.guidance.train_step(text_z, image_z, pred_rgb)
 
         # regularizations
         if self.opt.lambda_opacity > 0:
