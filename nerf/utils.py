@@ -369,24 +369,24 @@ class Trainer(object):
                 # construct dir-encoded text
                 text = f"{self.opt.text}, {d} view"
                 negative_text = f"{self.opt.negative}"
-                noise_level = 5
+                noise_level = 2
 
                 # explicit negative dir-encoded text
                 if self.opt.suppress_face:
                     if negative_text != '': negative_text += ', '
                     if d == 'back':
                         negative_text += "face"
-                        noise_level = 5
+                        noise_level = 2
                     # elif d == 'front': negative_text += ""
                     elif d == 'side':
                         # negative_text += "face"
                         noise_level = 0
                     elif d == 'overhead':
                         # negative_text += "face"
-                        noise_level = 5
+                        noise_level = 2
                     elif d == 'bottom':
                         negative_text += "face"
-                        noise_level = 5
+                        noise_level = 2
 
                 text_z = self.guidance.pipe._encode_prompt(
                     prompt=text,
