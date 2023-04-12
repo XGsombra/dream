@@ -379,9 +379,6 @@ class Trainer(object):
             pred_rgb = torch.cat([outputs['image'], outputs['weights_sum'].unsqueeze(-1)], dim=-1).reshape(B, H, W, 4).permute(0, 3, 1, 2).contiguous() # [1, 4, H, W]
         else:
             pred_rgb = outputs['image'].reshape(B, H, W, 3).permute(0, 3, 1, 2).contiguous() # [1, 3, H, W]
-        plt.imshow(pred_rgb.detach().permute(0, 2, 3, 1).cpu().numpy()[0, ...])
-        plt.axis("off")
-        plt.show()
 
         # text embeddings
         if self.opt.dir_text:
