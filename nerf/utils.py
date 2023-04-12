@@ -369,7 +369,7 @@ class Trainer(object):
                 # construct dir-encoded text
                 text = f"{self.opt.text}, {d} view"
                 negative_text = f"{self.opt.negative}"
-                noise_level = torch.tensor([0], device=self.device)
+                noise_level = torch.tensor([0.5], device=self.device)
 
                 # explicit negative dir-encoded text
                 if self.opt.suppress_face:
@@ -380,13 +380,13 @@ class Trainer(object):
                     # elif d == 'front': negative_text += ""
                     elif d == 'side': 
                         negative_text += "face"
-                        noise_level = torch.tensor([0.2], device=self.device)
+                        noise_level = torch.tensor([0], device=self.device)
                     elif d == 'overhead': 
                         negative_text += "face"
-                        noise_level = torch.tensor([0.4], device=self.device)
+                        noise_level = torch.tensor([0.5], device=self.device)
                     elif d == 'bottom': 
                         negative_text += "face"
-                        noise_level = torch.tensor([0.6], device=self.device)
+                        noise_level = torch.tensor([0.5], device=self.device)
 
                 text_z = self.guidance.pipe._encode_prompt(
                     prompt=text,
